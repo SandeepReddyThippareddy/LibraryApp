@@ -1,13 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Bogus;
+using LibraryApp.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibraryApp.Data
 {
-    public class LibraryContext
+    /// <summary>
+    /// Represents the database context for the library system, managing entities like Book, User, and Review.
+    /// Inherits from IdentityDbContext to include Identity-related tables.
+    /// </summary>
+    public class LibraryContext : IdentityDbContext<User>
     {
-                /// <summary>
+        /// <summary>
         /// Gets or sets the DbSet representing the collection of books in the library.
         /// </summary>
         public DbSet<Book> Books { get; set; }
@@ -37,12 +42,50 @@ namespace LibraryApp.Data
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Book)
                 .WithMany(b => b.Reviews)
-                .HasForeignKey(r => r.BookId);
+                .HasForeignKey(r => r.BookId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.User)
-                .WithMany(u => u.BorrowedBooks)
-                .HasForeignKey(r => r.UserId);
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Seeding the initial data using Bogus
+            SeedBooks(modelBuilder);
+            SeedUsers(modelBuilder);
+        }
+
+        private void SeedBooks(ModelBuilder modelBuilder)
+        {
+            var bookFaker = new Faker<Book>()
+                .RuleFor(b => b.Id, f => f.IndexFaker + 1)
+                .RuleFor(b => b.Title, f => f.Lorem.Sentence(3))
+                .RuleFor(b => b.Author, f => f.Person.FullName)
+                .RuleFor(b => b.Description, f => f.Lorem.Paragraph(2))
+                .RuleFor(b => b.ISBN, f => f.Commerce.Ean13())
+                .RuleFor(b => b.PageCount, f => f.Random.Int(100, 1000))
+                .RuleFor(b => b.Publisher, f => f.Company.CompanyName())
+                .RuleFor(b => b.PublicationDate, f => f.Date.Past(20))
+                .RuleFor(b => b.Category, f => f.Commerce.Categories(1)[0]);
+
+            var books = bookFaker.Generate(20);
+            modelBuilder.Entity<Book>().HasData(books);
+        }
+
+        private void SeedUsers(ModelBuilder modelBuilder)
+        {
+            var userFaker = new Faker<User>()
+                .RuleFor(u => u.Id, f => Guid.NewGuid().ToString())
+                .RuleFor(u => u.UserName, f => f.Internet.UserName())
+                .RuleFor(u => u.Email, f => f.Internet.Email())
+                .RuleFor(u => u.IsLibrarian, f => f.Random.Bool())
+                .RuleFor(u => u.NormalizedUserName, f => f.Internet.UserName().ToUpper())
+                .RuleFor(u => u.NormalizedEmail, f => f.Internet.Email().ToUpper())
+                .RuleFor(u => u.PasswordHash, f => new PasswordHasher<User>().HashPassword(null, "password123"));
+
+            var users = userFaker.Generate(10);
+            modelBuilder.Entity<User>().HasData(users);
         }
     }
 }

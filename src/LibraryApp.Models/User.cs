@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace LibraryApp.Models
 {
@@ -21,12 +21,16 @@ namespace LibraryApp.Models
         /// </summary>
         public ICollection<Book> BorrowedBooks { get; set; }
 
+        // Collection of reviews the user has written
+        public ICollection<Review> Reviews { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="User"/> class.
         /// </summary>
         public User()
         {
-            BorrowedBooks = new List<Book>();
+            BorrowedBooks = [];
+            Reviews = [];
         }
     }
 }

@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace LibraryApp.Models
 {
@@ -86,7 +85,7 @@ namespace LibraryApp.Models
         /// </summary>
         public Book()
         {
-            Reviews = new List<Review>();
+            Reviews = [];
         }
 
         /// <summary>
