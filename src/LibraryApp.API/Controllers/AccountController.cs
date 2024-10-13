@@ -1,21 +1,30 @@
 ﻿using LibraryApp.API.DTOs;
 using LibraryApp.API.Interfaces;
+using LibraryApp.API.Services;
 using LibraryApp.Models;
+using LibraryApp.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace LibraryApp.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService) : ControllerBase
+    public class AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ITokenService tokenService, IEmailSenderService emailSenderService, IConfiguration configuration) : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager = userManager;
         private readonly SignInManager<AppUser> _signInManager = signInManager;
         private readonly ITokenService _tokenService = tokenService;
+        private readonly IEmailSenderService _emailSenderService = emailSenderService;
+        private readonly IConfiguration _configuration = configuration;
+
+
 
         [AllowAnonymous]
         [HttpPost("login")]
@@ -60,6 +69,14 @@ namespace LibraryApp.API.Controllers
 
             if (!result.Succeeded) return BadRequest(result.Errors);
 
+            var token = _tokenService.CreateToken(user);
+
+            string confirmationLink = $"https://localhost:7037/confirm?token={token}";
+
+            var emailBody = MailMessageHandler.GetHtmlTemplateForUserRegistration(user, confirmationLink);
+
+            await _emailSenderService.SendEmailAsync(user.Email, "Confirm Your Email", emailBody);
+
             return new UserDto
             {
                 DisplayName = user.DisplayName,
@@ -67,6 +84,40 @@ namespace LibraryApp.API.Controllers
                 Username = user.UserName,
                 IsLibrarian = user.IsLibrarian
             };
+        }
+
+
+        [HttpGet("confirm")]
+        public async Task<IActionResult> ConfirmEmail(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_configuration["TokenKey"]);
+
+            try
+            {
+                var claims = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                }, out SecurityToken validatedToken);
+
+                var userId = claims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var user = await _userManager.FindByIdAsync(userId);
+
+                if (user == null) return BadRequest("Invalid token.");
+
+                // Mark the email as confirmed
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+
+                return Ok("Email confirmed successfully.");
+            }
+            catch
+            {
+                return BadRequest("Invalid token.");
+            }
         }
 
         [Authorize]

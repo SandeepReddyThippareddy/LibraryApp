@@ -63,6 +63,17 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+//Email Handler Service registration
+var smtpSettings = builder.Configuration.GetSection("SmtpSettings");
+builder.Services.AddTransient<IEmailSenderService>(provider =>
+    new EmailSenderService(
+        smtpSettings["Server"],
+        int.Parse(smtpSettings["Port"]),
+        smtpSettings["FromEmail"],
+        smtpSettings["Password"]
+    )
+);
+
 builder.Services.AddControllers();
 
 // Adding Swagger for API documentation
