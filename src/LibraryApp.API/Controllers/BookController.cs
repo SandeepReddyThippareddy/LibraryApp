@@ -1,64 +1,89 @@
 ﻿using LibraryApp.Data.Repositories.Interfaces;
 using LibraryApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using AutoMapper;
+using LibraryApp.API.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
-[ApiController]
-[Route("api/[controller]")]
-public class BookController : ControllerBase
+namespace LibraryApp.API.Controllers
 {
-    private readonly IBookRepository _bookRepository;
 
-    public BookController(IBookRepository bookRepository)
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class BookController : ControllerBase
     {
-        _bookRepository = bookRepository;
-    }
+        private readonly IBookRepository _bookRepository;
+        private readonly IMapper _mapper;
 
-    // GET: api/book
-    [HttpGet]
-    public async Task<IActionResult> GetBooks()
-    {
-        var books = await _bookRepository.GetAllBooksAsync();
-        return Ok(books);
-    }
-
-    // GET: api/book/{id}
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetBook(int id)
-    {
-        var book = await _bookRepository.GetBookByIdAsync(id);
-        if (book == null)
+        public BookController(IBookRepository bookRepository, IMapper mapper)
         {
-            return NotFound();
-        }
-        return Ok(book);
-    }
-
-    // POST: api/book
-    [HttpPost]
-    public async Task<IActionResult> AddBook([FromBody] Book book)
-    {
-        await _bookRepository.AddBookAsync(book);
-        return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
-    }
-
-    // PUT: api/book/{id}
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateBook(int id, [FromBody] Book book)
-    {
-        if (id != book.Id)
-        {
-            return BadRequest();
+            _bookRepository = bookRepository;
+            _mapper = mapper;
         }
 
-        await _bookRepository.UpdateBookAsync(book);
-        return NoContent();
-    }
+        // api/book
+        [HttpGet]
+        public async Task<IActionResult> GetBooks()
+        {
+            var books = await _bookRepository.GetAllBooksAsync();
+            var bookDtos = _mapper.Map<IEnumerable<BookDto>>(books);
+            return Ok(bookDtos);
+        }
 
-    // DELETE: api/book/{id}
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteBook(int id)
-    {
-        await _bookRepository.DeleteBookAsync(id);
-        return NoContent();
+        // api/book/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBook(int id)
+        {
+            var book = await _bookRepository.GetBookByIdAsync(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+            var bookDto = _mapper.Map<BookDto>(book);
+            return Ok(bookDto);
+        }
+
+        // api/book
+        [HttpPost]
+        [Authorize(Policy = "LibrarianOnly")]
+        public async Task<IActionResult> AddBook([FromBody] BookDto bookDto)
+        {
+            var book = _mapper.Map<Book>(bookDto);
+            await _bookRepository.AddBookAsync(book);
+            var createdBookDto = _mapper.Map<BookDto>(book);
+            return CreatedAtAction(nameof(GetBook), new { id = book.Id }, createdBookDto);
+        }
+
+        // api/book/{id}
+        [HttpPut("{id}")]
+        [Authorize(Policy = "LibrarianOnly")]
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] BookDto bookDto)
+        {
+            if (id != bookDto.Id)
+            {
+                return BadRequest();
+            }
+
+            var book = await _bookRepository.GetBookByIdAsync(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            _mapper.Map(bookDto, book);
+            await _bookRepository.UpdateBookAsync(book);
+
+            return NoContent();
+        }
+
+        // api/book/{id}
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "LibrarianOnly")]
+        public async Task<IActionResult> DeleteBook(int id)
+        {
+            await _bookRepository.DeleteBookAsync(id);
+            return NoContent();
+        }
     }
 }

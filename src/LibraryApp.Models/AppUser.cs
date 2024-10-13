@@ -7,8 +7,10 @@ namespace LibraryApp.Models
     /// Represents a user in the library system. A user can either be a librarian or a customer.
     /// Librarians can manage books, while customers can borrow books and leave reviews.
     /// </summary>
-    public class User : IdentityUser
+    public class AppUser : IdentityUser
     {
+        public string DisplayName { get; set; }
+
         /// <summary>
         /// Gets or sets a value indicating whether the user is a librarian.
         /// True if the user is a librarian; otherwise, false.
@@ -27,7 +29,7 @@ namespace LibraryApp.Models
         /// <summary>
         /// Initializes a new instance of the <see cref="User"/> class.
         /// </summary>
-        public User()
+        public AppUser()
         {
             BorrowedBooks = [];
             Reviews = [];

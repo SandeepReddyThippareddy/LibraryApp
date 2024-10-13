@@ -11,12 +11,12 @@ namespace LibraryApp.Data.Repositories.Interfaces
         /// Gets all librarians in the system.
         /// </summary>
         /// <returns>A collection of librarian users.</returns>
-        Task<IEnumerable<User>> GetAllLibrariansAsync();
+        Task<IEnumerable<AppUser>> GetAllLibrariansAsync();
 
         /// <summary>
         /// Gets all customers in the system.
         /// </summary>
         /// <returns>A collection of customer users.</returns>
-        Task<IEnumerable<User>> GetAllCustomersAsync();
+        Task<IEnumerable<AppUser>> GetAllCustomersAsync();
     }
 }

@@ -10,7 +10,7 @@ namespace LibraryApp.Data
     /// Represents the database context for the library system, managing entities like Book, User, and Review.
     /// Inherits from IdentityDbContext to include Identity-related tables.
     /// </summary>
-    public class LibraryContext : IdentityDbContext<User>
+    public class LibraryContext : IdentityDbContext<AppUser>
     {
         /// <summary>
         /// Gets or sets the DbSet representing the collection of books in the library.
@@ -75,17 +75,17 @@ namespace LibraryApp.Data
 
         private void SeedUsers(ModelBuilder modelBuilder)
         {
-            var userFaker = new Faker<User>()
+            var userFaker = new Faker<AppUser>()
                 .RuleFor(u => u.Id, f => Guid.NewGuid().ToString())
                 .RuleFor(u => u.UserName, f => f.Internet.UserName())
                 .RuleFor(u => u.Email, f => f.Internet.Email())
                 .RuleFor(u => u.IsLibrarian, f => f.Random.Bool())
                 .RuleFor(u => u.NormalizedUserName, f => f.Internet.UserName().ToUpper())
                 .RuleFor(u => u.NormalizedEmail, f => f.Internet.Email().ToUpper())
-                .RuleFor(u => u.PasswordHash, f => new PasswordHasher<User>().HashPassword(null, "password123"));
+                .RuleFor(u => u.PasswordHash, f => new PasswordHasher<AppUser>().HashPassword(null, "password123"));
 
             var users = userFaker.Generate(10);
-            modelBuilder.Entity<User>().HasData(users);
+            modelBuilder.Entity<AppUser>().HasData(users);
         }
     }
 }

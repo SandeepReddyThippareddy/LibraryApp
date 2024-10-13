@@ -45,6 +45,6 @@ namespace LibraryApp.Models
         /// <summary>
         /// Gets or sets the user who left the review.
         /// </summary>
-        public User User { get; set; }
+        public AppUser User { get; set; }
     }
 }

@@ -18,7 +18,7 @@ namespace LibraryApp.Data.Repositories
         /// <summary>
         /// Gets a collection of all librarians in the system.
         /// </summary>
-        public async Task<IEnumerable<User>> GetAllLibrariansAsync()
+        public async Task<IEnumerable<AppUser>> GetAllLibrariansAsync()
         {
             return await _context.Users
                 .Where(u => u.IsLibrarian)
@@ -28,7 +28,7 @@ namespace LibraryApp.Data.Repositories
         /// <summary>
         /// Gets a collection of all customers in the system.
         /// </summary>
-        public async Task<IEnumerable<User>> GetAllCustomersAsync()
+        public async Task<IEnumerable<AppUser>> GetAllCustomersAsync()
         {
             return await _context.Users
                 .Where(u => !u.IsLibrarian)
