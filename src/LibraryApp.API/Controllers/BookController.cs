@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace LibraryApp.API.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -84,6 +83,20 @@ namespace LibraryApp.API.Controllers
         {
             await _bookRepository.DeleteBookAsync(id);
             return NoContent();
+        }
+
+        // api/book/{id}/borrow
+        [HttpPut("{id}/borrow")]
+        [Authorize(Roles = "StudentOnly")]
+        public async Task<IActionResult> UpdateBookStatus(int id, [FromBody] bool isBorrowed)
+        {
+            var book = await _bookRepository.GetBookByIdAsync(id);
+            if (book == null) return NotFound();
+
+            book.IsBorrowed = isBorrowed;
+            await _bookRepository.UpdateBookAsync(book);
+
+            return Ok(new { message = isBorrowed ? "Book borrowed" : "Book returned" });
         }
     }
 }

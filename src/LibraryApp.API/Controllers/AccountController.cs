@@ -47,8 +47,8 @@ namespace LibraryApp.API.Controllers
             };
         }
 
-        [AllowAnonymous]
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
             if (await _userManager.Users.AnyAsync(x => x.UserName == registerDto.Username))
@@ -61,28 +61,29 @@ namespace LibraryApp.API.Controllers
             {
                 DisplayName = registerDto.DisplayName,
                 Email = registerDto.Email,
-                UserName = registerDto.Username,
-                IsLibrarian = registerDto.IsLibrarian
+                UserName = registerDto.Username
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
 
             if (!result.Succeeded) return BadRequest(result.Errors);
 
-            var token = _tokenService.CreateToken(user);
-
-            string confirmationLink = $"https://localhost:7037/confirm?token={token}";
-
-            var emailBody = MailMessageHandler.GetHtmlTemplateForUserRegistration(user, confirmationLink);
-
-            await _emailSenderService.SendEmailAsync(user.Email, "Confirm Your Email", emailBody);
+            // Assign the role based on the input
+            if (registerDto.IsLibrarian)
+            {
+                await _userManager.AddToRoleAsync(user, "Librarian");
+            }
+            else
+            {
+                await _userManager.AddToRoleAsync(user, "Student");
+            }
 
             return new UserDto
             {
                 DisplayName = user.DisplayName,
                 Token = _tokenService.CreateToken(user),
                 Username = user.UserName,
-                IsLibrarian = user.IsLibrarian
+                IsLibrarian = registerDto.IsLibrarian
             };
         }
 

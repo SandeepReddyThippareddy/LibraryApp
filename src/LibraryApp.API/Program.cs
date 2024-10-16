@@ -11,6 +11,7 @@ using System.Text;
 using LibraryApp.API.Interfaces;
 using LibraryApp.API.Profiles;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,16 +46,41 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // Authorization policies
-builder.Services.AddAuthorization(opt =>
+builder.Services.AddAuthorization(options =>
 {
-    opt.AddPolicy("LibrarianOnly", policy =>
+    // Policy for librarians only
+    options.AddPolicy("LibrarianOnly", policy =>
     {
-        policy.RequireClaim("IsLibrarian", "True");
+        policy.RequireRole("Librarian");
     });
+
+    // Policy for students only
+    options.AddPolicy("StudentOnly", policy =>
+    {
+        policy.RequireRole("Student");
+    });
+
+    // Fallback policy for authenticated users
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
 });
 
 // Register AutoMapper with the MappingProfile
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+var AllowSpecificOrigins = "_allowSpecificOrigins";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: AllowSpecificOrigins,
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000", "https://localhost:5108")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
 
 
 // Adding services to the container.
@@ -120,6 +146,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors(AllowSpecificOrigins);
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace LibraryApp.Models
 {
     /// <summary>
-    /// Represents a user in the library system. A user can either be a librarian or a customer.
-    /// Librarians can manage books, while customers can borrow books and leave reviews.
+    /// Represents a user in the library system. A user can either be a librarian or a student.
+    /// Librarians can manage books, while students can borrow books and leave reviews.
     /// </summary>
     public class AppUser : IdentityUser
     {
@@ -19,7 +19,7 @@ namespace LibraryApp.Models
         public bool IsLibrarian { get; set; }
 
         /// <summary>
-        /// Gets or sets the collection of books borrowed by the customer.
+        /// Gets or sets the collection of books borrowed by the student.
         /// </summary>
         public ICollection<Book> BorrowedBooks { get; set; }
 

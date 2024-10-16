@@ -26,7 +26,7 @@ namespace LibraryApp.Data.Repositories
         }
 
         /// <summary>
-        /// Gets a collection of all customers in the system.
+        /// Gets a collection of all students in the system.
         /// </summary>
         public async Task<IEnumerable<AppUser>> GetAllCustomersAsync()
         {

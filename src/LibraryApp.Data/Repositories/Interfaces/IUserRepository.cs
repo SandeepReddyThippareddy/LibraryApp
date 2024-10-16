@@ -14,9 +14,9 @@ namespace LibraryApp.Data.Repositories.Interfaces
         Task<IEnumerable<AppUser>> GetAllLibrariansAsync();
 
         /// <summary>
-        /// Gets all customers in the system.
+        /// Gets all students in the system.
         /// </summary>
-        /// <returns>A collection of customer users.</returns>
+        /// <returns>A collection of student users.</returns>
         Task<IEnumerable<AppUser>> GetAllCustomersAsync();
     }
 }

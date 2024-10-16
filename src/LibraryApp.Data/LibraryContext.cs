@@ -39,6 +39,13 @@ namespace LibraryApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure the many-to-many relationship between Book and AppUser (borrowers)
+            modelBuilder.Entity<Book>()
+                .HasMany(b => b.Borrowers)
+                .WithMany(u => u.BorrowedBooks)
+                .UsingEntity(j => j.ToTable("BookBorrowers"));
+
+            // Existing configurations for Review
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Book)
                 .WithMany(b => b.Reviews)

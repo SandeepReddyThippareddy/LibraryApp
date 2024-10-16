@@ -80,6 +80,19 @@ namespace LibraryApp.Models
         /// </summary>
         public ICollection<Review> Reviews { get; set; }
 
+
+        /// <summary>
+        /// Gets and sets the status of the book
+        /// </summary>
+        public bool IsBorrowed { get; set; }
+
+
+        /// <summary>
+        /// Gets or Sets the list of borrowers
+        /// </summary>
+        public List<AppUser> Borrowers { get; set; }
+
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Book"/> class.
         /// </summary>

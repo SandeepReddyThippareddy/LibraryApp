@@ -28,7 +28,7 @@ namespace LibraryApp.Data.Repositories
         /// </summary>
         public async Task<Book?> GetBookByIdAsync(int id)
         {
-            return await _context.Books.Include(b => b.Reviews).FirstOrDefaultAsync(b => b.Id == id);
+            return await _context.Books.Include(b => b.Borrowers).Include(b => b.Reviews).FirstOrDefaultAsync(b => b.Id == id);
         }
 
         /// <summary>
