@@ -47,8 +47,8 @@ namespace LibraryApp.API.Controllers
             };
         }
 
-        [HttpPost("register")]
         [AllowAnonymous]
+        [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
             if (await _userManager.Users.AnyAsync(x => x.UserName == registerDto.Username))
@@ -68,7 +68,7 @@ namespace LibraryApp.API.Controllers
 
             if (!result.Succeeded) return BadRequest(result.Errors);
 
-            // Assign the role based on the input
+            // Add user to role based on the IsLibrarian flag
             if (registerDto.IsLibrarian)
             {
                 await _userManager.AddToRoleAsync(user, "Librarian");
@@ -82,10 +82,10 @@ namespace LibraryApp.API.Controllers
             {
                 DisplayName = user.DisplayName,
                 Token = _tokenService.CreateToken(user),
-                Username = user.UserName,
-                IsLibrarian = registerDto.IsLibrarian
+                Username = user.UserName
             };
         }
+
 
 
         [HttpGet("confirm")]

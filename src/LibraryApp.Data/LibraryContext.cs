@@ -10,7 +10,7 @@ namespace LibraryApp.Data
     /// Represents the database context for the library system, managing entities like Book, User, and Review.
     /// Inherits from IdentityDbContext to include Identity-related tables.
     /// </summary>
-    public class LibraryContext : IdentityDbContext<AppUser>
+    public class LibraryContext : IdentityDbContext<AppUser, IdentityRole, string>
     {
         /// <summary>
         /// Gets or sets the DbSet representing the collection of books in the library.
@@ -94,5 +94,6 @@ namespace LibraryApp.Data
             var users = userFaker.Generate(10);
             modelBuilder.Entity<AppUser>().HasData(users);
         }
+
     }
 }

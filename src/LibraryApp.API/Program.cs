@@ -12,6 +12,7 @@ using LibraryApp.API.Interfaces;
 using LibraryApp.API.Profiles;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authorization;
+using LibraryApp.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,14 +23,16 @@ var connectionString = builder.Configuration.GetConnectionString("LibraryConnect
 builder.Services.AddDbContext<LibraryContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Configuring Identity
-builder.Services.AddIdentityCore<AppUser>(opt =>
+// Configuring Identity with roles
+builder.Services.AddIdentity<AppUser, IdentityRole>(opt =>
 {
     opt.Password.RequireNonAlphanumeric = false;
     opt.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<LibraryContext>()
-.AddSignInManager<SignInManager<AppUser>>();
+.AddSignInManager<SignInManager<AppUser>>()
+.AddDefaultTokenProviders();
+
 
 // Adding JWT authentication
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenKey"]));
@@ -81,6 +84,19 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
         });
 });
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.Redirect("/Account/Login");
+        return Task.CompletedTask;
+    };
+});
+
 
 
 // Adding services to the container.
@@ -153,4 +169,20 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Seed the roles during application startup
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        await services.SeedRoles();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding roles.");
+    }
+}
+
 app.Run();
+
