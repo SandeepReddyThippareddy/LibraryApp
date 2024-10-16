@@ -14,33 +14,48 @@ export default class BookStore {
     makeAutoObservable(this);
   }
 
+  setPredicate = (key: string, value: string | boolean) => {
+    this.predicate.set(key, value);
+    // Trigger filtering logic based on the updated predicate
+    this.filterBooks();
+  };
+
+  get filteredBooks() {
+    let filteredBooks = Array.from(this.bookRegistry.values());
+
+    // Apply filters
+    if (this.predicate.has("all") && this.predicate.get("all") === "true") {
+      return filteredBooks;
+    }
+    if (this.predicate.has("isBorrowed")) {
+      filteredBooks = filteredBooks.filter((book) => book.isBorrowed);
+    }
+    if (this.predicate.has("title")) {
+      filteredBooks = filteredBooks.filter((book) =>
+        book.title.toLowerCase().includes(this.predicate.get("title")?.toLowerCase() ?? "")
+      );
+    }
+
+    return filteredBooks;
+  }
+
+  filterBooks = () => {
+    // This will automatically react in the UI when `filteredBooks` getter is called
+  };
+
+
   clearSelectedBook = () => {
     this.selectedBook = undefined;
-};
-
-  get groupedBooks() {
-    return Object.entries(
-      this.booksByCategory.reduce((books, book) => {
-        const category = book.category || "Other";
-        books[category] = books[category] ? [...books[category], book] : [book];
-        return books;
-      }, {} as { [key: string]: Book[] })
-    );
-  }
-
-
-  get booksByCategory() {
-    return Array.from(this.bookRegistry.values());
-  }
+  };
 
   // Update book status (borrowed or returned)
   updateBookStatus = async (id: string, isBorrowed: boolean) => {
     this.loading = true;
     try {
-      // Make API request to update the book status
+      // Await the API call
       await agent.BookApi.updateBookStatus(id, isBorrowed);
 
-      // Run action to update the local state
+      // Update local state in MobX store
       runInAction(() => {
         const book = this.bookRegistry.get(id);
         if (book) {
@@ -48,14 +63,20 @@ export default class BookStore {
         }
         this.loading = false;
       });
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
       runInAction(() => {
         this.loading = false;
       });
+      if (error.response && error.response.status === 401) {
+        alert("You are not authorized to perform this action.");
+      } else if (error.response && error.response.status === 400) {
+        alert("There was an error with your request.");
+      } else {
+        console.error(error);
+        alert("Something went wrong.");
+      }
     }
   };
-
 
   // Load all books from the API
   loadBooks = async () => {
@@ -102,7 +123,7 @@ export default class BookStore {
     try {
       const newBook: Book = {
         ...bookFormValues,
-        id: uuid(), 
+        id: uuid(),
         title: bookFormValues.title || "",
         author: bookFormValues.author || "",
         description: bookFormValues.description || "",
@@ -130,7 +151,7 @@ export default class BookStore {
     this.loading = true;
     try {
       const updatedBook: Book = {
-        id: this.selectedBook?.id || uuid(), // Ensure that id is always defined
+        id: this.selectedBook?.id || uuid(),
         title: bookFormValues.title || this.selectedBook?.title || "",
         author: bookFormValues.author || this.selectedBook?.author || "",
         description:
@@ -145,7 +166,7 @@ export default class BookStore {
           bookFormValues.coverImage || this.selectedBook?.coverImage || "",
         publisher:
           bookFormValues.publisher || this.selectedBook?.publisher || "",
-        reviews: this.selectedBook?.reviews || [], // Handle reviews, if necessary
+        reviews: this.selectedBook?.reviews || [],
       };
 
       await agent.BookApi.updateBook(updatedBook);
@@ -183,10 +204,5 @@ export default class BookStore {
   // Helper function to set the loading state
   setLoadingInitial = (state: boolean) => {
     this.loadingInitial = state;
-  };
-
-  // Filtering using predicates
-  setPredicate = (key: string, value: string) => {
-    this.predicate.set(key, value);
   };
 }

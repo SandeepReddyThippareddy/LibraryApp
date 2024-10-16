@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using LibraryApp.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace LibraryApp.API.Extensions
 {
@@ -9,18 +10,16 @@ namespace LibraryApp.API.Extensions
             using (var scope = serviceProvider.CreateScope())
             {
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                string[] roleNames = { "Student", "Librarian" };
 
-                var roles = new[] { "Librarian", "Student" }; 
-
-                foreach (var role in roles)
+                foreach (var roleName in roleNames)
                 {
-                    if (!await roleManager.RoleExistsAsync(role))
+                    if (!await roleManager.RoleExistsAsync(roleName))
                     {
-                        await roleManager.CreateAsync(new IdentityRole(role));
+                        await roleManager.CreateAsync(new IdentityRole(roleName));
                     }
                 }
             }
         }
     }
-
 }

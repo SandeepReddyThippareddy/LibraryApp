@@ -16,14 +16,12 @@ const BookFilters = observer(() => {
                     onClick={() => setPredicate('all', 'true')}
                 />
                 <Menu.Item
-                    content="Available Books"
-                    active={predicate.has('isAvailable')}
-                    onClick={() => setPredicate('isAvailable', 'true')}
-                />
-                <Menu.Item
                     content="Borrowed Books"
                     active={predicate.has('isBorrowed')}
-                    onClick={() => setPredicate('isBorrowed', 'true')}
+                    onClick={() => {
+                        setPredicate('all', false); 
+                        setPredicate('isBorrowed', true);
+                    }}
                 />
             </Menu>
             <Header />

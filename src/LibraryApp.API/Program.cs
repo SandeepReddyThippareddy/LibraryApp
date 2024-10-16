@@ -13,17 +13,18 @@ using LibraryApp.API.Profiles;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using LibraryApp.API.Extensions;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Connection string of Database from Config files
+// Database Connection
 var connectionString = builder.Configuration.GetConnectionString("LibraryConnection");
 
-// Adding services to the container
+// Add DbContext
 builder.Services.AddDbContext<LibraryContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Configuring Identity with roles
+// Configure Identity and Roles
 builder.Services.AddIdentity<AppUser, IdentityRole>(opt =>
 {
     opt.Password.RequireNonAlphanumeric = false;
@@ -31,10 +32,17 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(opt =>
 })
 .AddEntityFrameworkStores<LibraryContext>()
 .AddSignInManager<SignInManager<AppUser>>()
+.AddRoleManager<RoleManager<IdentityRole>>()
 .AddDefaultTokenProviders();
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+});
 
-// Adding JWT authentication
+
+// JWT Authentication
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenKey"]));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
@@ -44,84 +52,67 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = key,
             ValidateIssuer = false,
-            ValidateAudience = false
+            ValidateAudience = false,
+            RoleClaimType = ClaimTypes.Role
+        };
+        opt.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                return Task.CompletedTask;
+            }
+        };
+        opt.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                // Log or check if the token exists
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                // Log failures to help debug
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                // Log when the token is successfully validated
+                return Task.CompletedTask;
+            }
         };
     });
 
-// Authorization policies
-builder.Services.AddAuthorization(options =>
-{
-    // Policy for librarians only
-    options.AddPolicy("LibrarianOnly", policy =>
-    {
-        policy.RequireRole("Librarian");
-    });
-
-    // Policy for students only
-    options.AddPolicy("StudentOnly", policy =>
-    {
-        policy.RequireRole("Student");
-    });
-
-    // Fallback policy for authenticated users
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
-
-// Register AutoMapper with the MappingProfile
+// Add AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-var AllowSpecificOrigins = "_allowSpecificOrigins";
+// Add CORS Policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: AllowSpecificOrigins,
+    options.AddPolicy("AllowAll",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000", "https://localhost:5108")
-                .AllowAnyHeader()
+            policy.AllowAnyOrigin()
                 .AllowAnyMethod()
-                .AllowCredentials();
+                .AllowAnyHeader();
         });
 });
 
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.LogoutPath = "/Account/Logout";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-    options.Events.OnRedirectToLogin = context =>
-    {
-        context.Response.Redirect("/Account/Login");
-        return Task.CompletedTask;
-    };
-});
-
-
-
-// Adding services to the container.
+// Add Services (Repositories, TokenService, EmailSender)
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-//Email Handler Service registration
-var smtpSettings = builder.Configuration.GetSection("SmtpSettings");
-builder.Services.AddTransient<IEmailSenderService>(provider =>
-    new EmailSenderService(
-        smtpSettings["Server"],
-        int.Parse(smtpSettings["Port"]),
-        smtpSettings["FromEmail"],
-        smtpSettings["Password"]
-    )
-);
-
+// Add Controllers
 builder.Services.AddControllers();
 
-// Adding Swagger for API documentation
+// Swagger for API Documentation
 builder.Services.AddEndpointsApiExplorer();
-
-// Configuring Swagger to support JWT authentication
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "LibraryApp API", Version = "v1" });
@@ -152,24 +143,23 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 var app = builder.Build();
 
+// Enable middleware
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "LibraryApp API v1"));
 }
 
 app.UseHttpsRedirection();
-app.UseCors(AllowSpecificOrigins);
-
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
-// Seed the roles during application startup
+// Seed Roles on Startup
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -185,4 +175,3 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-

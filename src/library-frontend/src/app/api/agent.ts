@@ -16,9 +16,9 @@ axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 
 // Intercept requests and include JWT token
 axios.interceptors.request.use((config) => {
-  const token = store.commonStore.token; // Retrieve token from common store
+  const token = store.commonStore.token;
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`; // Add token to headers
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -26,7 +26,7 @@ axios.interceptors.request.use((config) => {
 // Intercept responses for errors and simulate delay
 axios.interceptors.response.use(
   async (response) => {
-    await sleep(500); // Simulate a delay for smoother user experience
+    await sleep(500);
     return response;
   },
   (error) => {
@@ -34,7 +34,6 @@ axios.interceptors.response.use(
 
     if (status === 401) {
       console.error("Unauthorized access - invalid token");
-      // Handle redirect or token expiration here if necessary
     }
 
     if (status === 500) {
@@ -69,7 +68,7 @@ const UserApi = {
       store.commonStore.setToken(user.token ?? null);
       return user;
     }),
-  current: () => requests.get<User>("/account/GetCurrentUser"),
+  current: () => requests.get<User>("/account"),
 };
 
 // API for Book Management
@@ -79,10 +78,11 @@ const BookApi = {
   create: (book: Book) => requests.post<void>("/book", book),
   updateBook: (book: Book) => requests.put<void>(`/book/${book.id}`, book),
   updateBookStatus: (id: string, isBorrowed: boolean) => {
-    requests.put<void>(`/book/${id}/borrow`, { isBorrowed });
+    return requests.put<void>(`/book/${id}/borrow`, { isBorrowed });
   },
   delete: (id: string) => requests.delete<void>(`/book/${id}`),
 };
+
 
 // Review API for interacting with reviews
 const ReviewApi = {

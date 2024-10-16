@@ -1,102 +1,85 @@
-﻿using LibraryApp.Data.Repositories.Interfaces;
+﻿using LibraryApp.API.DTOs;
+using LibraryApp.Data.Repositories.Interfaces;
 using LibraryApp.Models;
-using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
-using LibraryApp.API.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryApp.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class BookController : ControllerBase
     {
         private readonly IBookRepository _bookRepository;
-        private readonly IMapper _mapper;
 
-        public BookController(IBookRepository bookRepository, IMapper mapper)
+        public BookController(IBookRepository bookRepository)
         {
             _bookRepository = bookRepository;
-            _mapper = mapper;
         }
 
-        // api/book
+        // Get all books - Accessible by Librarians and Students
         [HttpGet]
+        [Authorize(Roles = "Librarian, Student")]
         public async Task<IActionResult> GetBooks()
         {
             var books = await _bookRepository.GetAllBooksAsync();
-            var bookDtos = _mapper.Map<IEnumerable<BookDto>>(books);
-            return Ok(bookDtos);
+            return Ok(books);
         }
 
-        // api/book/{id}
+        // Get a specific book by ID - Accessible by Librarians and Students
         [HttpGet("{id}")]
+        [Authorize(Roles = "Librarian, Student")]
         public async Task<IActionResult> GetBook(int id)
         {
             var book = await _bookRepository.GetBookByIdAsync(id);
-            if (book == null)
-            {
-                return NotFound();
-            }
-            var bookDto = _mapper.Map<BookDto>(book);
-            return Ok(bookDto);
+            if (book == null) return NotFound();
+            return Ok(book);
         }
 
-        // api/book
+        // Add a new book - Accessible only by Librarians
         [HttpPost]
-        [Authorize(Policy = "LibrarianOnly")]
-        public async Task<IActionResult> AddBook([FromBody] BookDto bookDto)
+        [Authorize(Roles = "Librarian")]
+        public async Task<IActionResult> AddBook([FromBody] Book book)
         {
-            var book = _mapper.Map<Book>(bookDto);
             await _bookRepository.AddBookAsync(book);
-            var createdBookDto = _mapper.Map<BookDto>(book);
-            return CreatedAtAction(nameof(GetBook), new { id = book.Id }, createdBookDto);
+            return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
         }
 
-        // api/book/{id}
+        // Update a book - Accessible only by Librarians
         [HttpPut("{id}")]
-        [Authorize(Policy = "LibrarianOnly")]
-        public async Task<IActionResult> UpdateBook(int id, [FromBody] BookDto bookDto)
+        [Authorize(Roles = "Librarian")]
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] Book book)
         {
-            if (id != bookDto.Id)
-            {
-                return BadRequest();
-            }
+            if (id != book.Id) return BadRequest();
+            var existingBook = await _bookRepository.GetBookByIdAsync(id);
+            if (existingBook == null) return NotFound();
 
-            var book = await _bookRepository.GetBookByIdAsync(id);
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            _mapper.Map(bookDto, book);
             await _bookRepository.UpdateBookAsync(book);
-
             return NoContent();
         }
 
-        // api/book/{id}
+        // Delete a book - Accessible only by Librarians
         [HttpDelete("{id}")]
-        [Authorize(Policy = "LibrarianOnly")]
+        [Authorize(Roles = "Librarian")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             await _bookRepository.DeleteBookAsync(id);
             return NoContent();
         }
 
-        // api/book/{id}/borrow
+        // Update book borrow status
         [HttpPut("{id}/borrow")]
-        [Authorize(Roles = "StudentOnly")]
-        public async Task<IActionResult> UpdateBookStatus(int id, [FromBody] bool isBorrowed)
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> UpdateBookStatus(int id, [FromBody] BookStatusDto statusDto)
         {
             var book = await _bookRepository.GetBookByIdAsync(id);
             if (book == null) return NotFound();
 
-            book.IsBorrowed = isBorrowed;
+            book.IsBorrowed = statusDto.IsBorrowed;  
             await _bookRepository.UpdateBookAsync(book);
 
-            return Ok(new { message = isBorrowed ? "Book borrowed" : "Book returned" });
+            return Ok(new { message = statusDto.IsBorrowed ? "Book borrowed" : "Book returned" });
         }
+
     }
 }
