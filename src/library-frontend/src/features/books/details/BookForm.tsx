@@ -26,12 +26,10 @@ const BookForm = observer(() => {
     pageCount: Yup.number().required(),
   });
 
-  // Load the book when the component mounts if an id exists
   useEffect(() => {
     if (id) {
       loadBook(id).then((book) => {
         if (book) {
-          // Set the book values if found, providing fallback values for missing properties
           setBook({
             id: book.id,
             title: book.title || "",
@@ -49,7 +47,6 @@ const BookForm = observer(() => {
     }
   }, [id, loadBook]);
 
-  // Handle form submission
   const handleFormSubmit = (book: BookFormValues) => {
     if (!book.id) {
       createBook(book).then((newBook) => navigate(`/books/${newBook?.id}`));

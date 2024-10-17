@@ -18,9 +18,9 @@ namespace LibraryApp.Data
         public DbSet<Book> Books { get; set; }
 
         /// <summary>
-        /// Gets or sets the DbSet representing the collection of reviews in the library.
+        /// Gets or sets the DbSet representing the collection of comments in the library.
         /// </summary>
-        public DbSet<Review> Reviews { get; set; }
+        public DbSet<Comment> Comments { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LibraryContext"/> class with the specified options.
@@ -45,18 +45,10 @@ namespace LibraryApp.Data
                 .WithMany(u => u.BorrowedBooks)
                 .UsingEntity(j => j.ToTable("BookBorrowers"));
 
-            // Existing configurations for Review
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Book)
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.Book)
                 .WithMany(b => b.Reviews)
-                .HasForeignKey(r => r.BookId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.User)
-                .WithMany(u => u.Reviews)
-                .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             // Seeding the initial data using Bogus
             SeedBooks(modelBuilder);

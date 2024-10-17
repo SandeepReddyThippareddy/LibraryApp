@@ -8,20 +8,20 @@ import { formatDistanceToNow } from 'date-fns';
 import { useStore } from '../../store';
 
 interface Props {
-    BookId: string;
+    bookId: string;
 }
 
-const BookDetailedChat = observer(({ BookId }: Props) => {
+export default observer(function BookDetailedChat({ bookId }: Props) {
     const { commentStore } = useStore();
 
     useEffect(() => {
-        if (BookId) {
-            commentStore.createHubConnection(BookId);
+        if (bookId) {
+            commentStore.createHubConnection(bookId);
         }
         return () => {
             commentStore.clearComments();
-        };
-    }, [commentStore, BookId]);
+        }
+    }, [commentStore, bookId]);
 
     return (
         <>
@@ -50,10 +50,10 @@ const BookDetailedChat = observer(({ BookId }: Props) => {
                                     <div style={{ position: 'relative' }}>
                                         <Loader active={isSubmitting} />
                                         <textarea
-                                            placeholder='Enter your comment'
+                                            placeholder='Enter your comment (Enter to submit, SHIFT + Enter for new line)'
                                             rows={2}
                                             {...props.field}
-                                            onKeyPress={e => {
+                                            onKeyDown={e => {
                                                 if (e.key === 'Enter' && e.shiftKey) {
                                                     return;
                                                 }
@@ -74,20 +74,16 @@ const BookDetailedChat = observer(({ BookId }: Props) => {
                         <Comment key={comment.id}>
                             <Comment.Avatar src={comment.image || '/assets/user.png'} />
                             <Comment.Content>
-                                <Comment.Author as={Link} to={`/profiles/${comment.username}`}>
-                                    {comment.displayName}
-                                </Comment.Author>
+                                <Comment.Author as={Link} to={`/profiles/${comment.username}`}>{comment.displayName}</Comment.Author>
                                 <Comment.Metadata>
                                     <div>{formatDistanceToNow(comment.createdAt)} ago</div>
                                 </Comment.Metadata>
-                                <Comment.Text>{comment.body}</Comment.Text>
+                                <Comment.Text style={{ whiteSpace: 'pre-wrap' }}>{comment.body}</Comment.Text>
                             </Comment.Content>
                         </Comment>
                     ))}
                 </Comment.Group>
             </Segment>
         </>
-    );
+    )
 });
-
-export default BookDetailedChat;

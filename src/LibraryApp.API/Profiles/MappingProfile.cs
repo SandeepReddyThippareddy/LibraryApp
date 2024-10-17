@@ -8,8 +8,8 @@ namespace LibraryApp.API.Profiles
     {
         public MappingProfile()
         {
-            CreateMap<BookDto, Book>();
             CreateMap<Book, BookDto>().ReverseMap();
+            CreateMap<Comment, CommentDto>().ReverseMap();
         }
     }
 }

@@ -1,4 +1,3 @@
-using LibraryApp.API.Services;
 using LibraryApp.Data;
 using LibraryApp.Data.Repositories.Interfaces;
 using LibraryApp.Data.Repositories;
@@ -11,9 +10,9 @@ using System.Text;
 using LibraryApp.API.Interfaces;
 using LibraryApp.API.Profiles;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authorization;
 using LibraryApp.API.Extensions;
 using System.Security.Claims;
+using LibraryApp.API.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +21,7 @@ var connectionString = builder.Configuration.GetConnectionString("LibraryConnect
 
 // Add DbContext
 builder.Services.AddDbContext<LibraryContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, options => options.CommandTimeout(500)));
 
 // Configure Identity and Roles
 builder.Services.AddIdentity<AppUser, IdentityRole>(opt =>
@@ -41,6 +40,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 });
 
+builder.Services.AddSignalR();
 
 // JWT Authentication
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenKey"]));
@@ -104,7 +104,6 @@ builder.Services.AddCors(options =>
 
 // Add Services (Repositories, TokenService, EmailSender)
 builder.Services.AddScoped<IBookRepository, BookRepository>();
-builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
@@ -158,6 +157,8 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<ChatHub>("/chat");
+
 
 // Seed Roles on Startup
 using (var scope = app.Services.CreateScope())

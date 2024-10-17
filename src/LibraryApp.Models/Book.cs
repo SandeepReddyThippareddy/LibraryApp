@@ -75,11 +75,6 @@ namespace LibraryApp.Models
         /// </summary>
         public double AverageRating { get; set; }
 
-        /// <summary>
-        /// Gets or sets the collection of reviews associated with this book.
-        /// </summary>
-        public ICollection<Review> Reviews { get; set; }
-
 
         /// <summary>
         /// Gets and sets the status of the book
@@ -91,6 +86,9 @@ namespace LibraryApp.Models
         /// Gets or Sets the list of borrowers
         /// </summary>
         public List<AppUser> Borrowers { get; set; }
+
+        public ICollection<Comment> Reviews { get; set; } = new List<Comment>();
+
 
 
         /// <summary>
@@ -114,21 +112,6 @@ namespace LibraryApp.Models
                 return new ValidationResult("Publication date cannot be in the future.");
             }
             return ValidationResult.Success;
-        }
-
-        /// <summary>
-        /// Calculates and updates the average rating for the book based on its reviews.
-        /// </summary>
-        public void UpdateAverageRating()
-        {
-            if (Reviews.Count > 0)
-            {
-                AverageRating = Math.Round((double)Reviews.Sum(r => r.Rating) / Reviews.Count, 2);
-            }
-            else
-            {
-                AverageRating = 0;
-            }
         }
     }
 }
