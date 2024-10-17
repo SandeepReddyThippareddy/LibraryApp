@@ -78,13 +78,19 @@ namespace LibraryApp.API.Controllers
         {
             var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Email == User.FindFirstValue(ClaimTypes.Email));
 
+            if (user == null) return Unauthorized();
+
+            // Check if the user is in the Librarian role
+            var isLibrarian = await _userManager.IsInRoleAsync(user, "Librarian");
+
             return new UserDto
             {
                 DisplayName = user.DisplayName,
                 Token = await _tokenService.CreateToken(user),
                 Username = user.UserName,
-                IsLibrarian = user.IsLibrarian
+                IsLibrarian = isLibrarian, 
             };
         }
+
     }
 }

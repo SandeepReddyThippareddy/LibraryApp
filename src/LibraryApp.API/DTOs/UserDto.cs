@@ -18,5 +18,6 @@
         /// Bool flag to check IsLibrarian
         /// </summary>
         public bool IsLibrarian { get; set; }
+
     }
 }

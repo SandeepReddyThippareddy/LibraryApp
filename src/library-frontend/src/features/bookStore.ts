@@ -117,36 +117,23 @@ export default class BookStore {
     }
   };
 
-  // Create a new book
   createBook = async (bookFormValues: BookFormValues) => {
     this.loading = true;
     try {
-      const newBook: Book = {
-        ...bookFormValues,
-        id: uuid(),
-        title: bookFormValues.title || "",
-        author: bookFormValues.author || "",
-        description: bookFormValues.description || "",
-        category: bookFormValues.category || "",
-        publicationDate: bookFormValues.publicationDate || null,
-        ISBN: bookFormValues.ISBN || "",
-        coverImage: bookFormValues.coverImage || "",
-        publisher: bookFormValues.publisher || "",
-      };
-
-      await agent.BookApi.create(newBook);
+      const newBook = await agent.BookApi.create(bookFormValues);
       runInAction(() => {
         this.bookRegistry.set(newBook.id, newBook);
         this.selectedBook = newBook;
       });
+      return newBook;
     } catch (error) {
       console.log(error);
     } finally {
       this.loading = false;
     }
   };
+  
 
-  // Update an existing book
   updateBook = async (bookFormValues: BookFormValues) => {
     this.loading = true;
     try {
@@ -154,21 +141,16 @@ export default class BookStore {
         id: this.selectedBook?.id || uuid(),
         title: bookFormValues.title || this.selectedBook?.title || "",
         author: bookFormValues.author || this.selectedBook?.author || "",
-        description:
-          bookFormValues.description || this.selectedBook?.description || "",
+        description: bookFormValues.description || this.selectedBook?.description || "",
         category: bookFormValues.category || this.selectedBook?.category || "",
-        publicationDate:
-          bookFormValues.publicationDate ||
-          this.selectedBook?.publicationDate ||
-          null,
-        ISBN: bookFormValues.ISBN || this.selectedBook?.ISBN || "",
-        coverImage:
-          bookFormValues.coverImage || this.selectedBook?.coverImage || "",
-        publisher:
-          bookFormValues.publisher || this.selectedBook?.publisher || "",
-        reviews: this.selectedBook?.reviews || [],
+        publicationDate: bookFormValues.publicationDate || this.selectedBook?.publicationDate || null,
+        ISBN: bookFormValues.ISBN || this.selectedBook?.ISBN || "", 
+        pageCount: bookFormValues.pageCount || this.selectedBook?.pageCount || 0,
+        coverImage: bookFormValues.coverImage || this.selectedBook?.coverImage || "",
+        publisher: bookFormValues.publisher || this.selectedBook?.publisher || "",
+        reviews: this.selectedBook?.reviews || [], 
       };
-
+  
       await agent.BookApi.updateBook(updatedBook);
       runInAction(() => {
         this.bookRegistry.set(updatedBook.id, updatedBook);
@@ -180,7 +162,7 @@ export default class BookStore {
       this.loading = false;
     }
   };
-
+  
   // Delete a book
   deleteBook = async (id: string) => {
     this.loading = true;

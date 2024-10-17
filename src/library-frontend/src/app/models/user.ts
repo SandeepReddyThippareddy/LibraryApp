@@ -5,12 +5,12 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  role: "Customer" | "Librarian";
   borrowedBooks?: Book[];
   reviews?: Review[];
   profileImage?: string;
   token: string;
   displayName: string;
+  isLibrarian: boolean;
 }
 export interface UserFormValues {
   email: string;

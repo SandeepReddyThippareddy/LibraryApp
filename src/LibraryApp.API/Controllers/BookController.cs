@@ -1,4 +1,5 @@
-﻿using LibraryApp.API.DTOs;
+﻿using AutoMapper;
+using LibraryApp.API.DTOs;
 using LibraryApp.Data.Repositories.Interfaces;
 using LibraryApp.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -11,10 +12,12 @@ namespace LibraryApp.API.Controllers
     public class BookController : ControllerBase
     {
         private readonly IBookRepository _bookRepository;
+        private readonly IMapper _mapper;
 
-        public BookController(IBookRepository bookRepository)
+        public BookController(IBookRepository bookRepository, IMapper mapper)
         {
             _bookRepository = bookRepository;
+            _mapper = mapper;
         }
 
         // Get all books - Accessible by Librarians and Students
@@ -33,28 +36,34 @@ namespace LibraryApp.API.Controllers
         {
             var book = await _bookRepository.GetBookByIdAsync(id);
             if (book == null) return NotFound();
-            return Ok(book);
+            var bookDto = _mapper.Map<BookDto>(book);
+            return Ok(bookDto);
         }
 
         // Add a new book - Accessible only by Librarians
         [HttpPost]
         [Authorize(Roles = "Librarian")]
-        public async Task<IActionResult> AddBook([FromBody] Book book)
+        public async Task<ActionResult<BookDto>> CreateBook([FromBody] BookDto bookDto)
         {
+            var book = _mapper.Map<Book>(bookDto);
             await _bookRepository.AddBookAsync(book);
-            return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
+            var createdBookDto = _mapper.Map<BookDto>(book);
+            return CreatedAtAction(nameof(GetBook), new { id = book.Id }, createdBookDto);
         }
 
         // Update a book - Accessible only by Librarians
         [HttpPut("{id}")]
         [Authorize(Roles = "Librarian")]
-        public async Task<IActionResult> UpdateBook(int id, [FromBody] Book book)
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] BookDto bookDto)
         {
-            if (id != book.Id) return BadRequest();
-            var existingBook = await _bookRepository.GetBookByIdAsync(id);
-            if (existingBook == null) return NotFound();
+            if (id != bookDto.Id) return BadRequest("Book ID mismatch");
 
-            await _bookRepository.UpdateBookAsync(book);
+            var existingBook = await _bookRepository.GetBookByIdAsync(id);
+            if (existingBook == null) return NotFound("Book not found");
+
+            _mapper.Map(bookDto, existingBook);
+
+            await _bookRepository.UpdateBookAsync(existingBook);
             return NoContent();
         }
 

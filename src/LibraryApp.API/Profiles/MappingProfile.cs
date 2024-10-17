@@ -9,7 +9,7 @@ namespace LibraryApp.API.Profiles
         public MappingProfile()
         {
             CreateMap<BookDto, Book>();
-            CreateMap<Book, BookDto>();
+            CreateMap<Book, BookDto>().ReverseMap();
         }
     }
 }

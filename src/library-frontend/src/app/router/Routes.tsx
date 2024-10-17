@@ -6,6 +6,7 @@ import BookDashboard from "../../features/books/dashboard/BookDashboard";
 import ServerError from "../../features/errors/ServerError";
 import NotFound from "../../features/errors/NotFound";
 import BookDetails from "../../features/books/details/BookDetails";
+import BookForm from "../../features/books/form/BookForm";
 
 export const routes: RouteObject[] = [
   {
@@ -17,8 +18,8 @@ export const routes: RouteObject[] = [
         children: [
           { path: "books", element: <BookDashboard /> },
           { path: "book/:id", element: <BookDetails /> },
-          // {path: 'createBook', element: <EventForm key='create' />},
-          // {path: 'manage/:id', element: <EventForm key='manage' />},
+          {path: "/books/create", element: <BookForm key='create' />},
+          {path: '/books/edit/:id', element: <BookForm key='manage' />},
           { path: "profiles/:username", element: <ProfilePage /> },
         ],
       },

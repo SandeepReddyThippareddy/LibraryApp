@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios";
-import { Book } from "../models/book";
+import { Book, BookFormValues } from "../models/book";
 import { store } from "../../features/store";
 import { User, UserFormValues } from "../models/user";
 import { Review, ReviewFormValues } from "../models/review";
@@ -75,7 +75,7 @@ const UserApi = {
 const BookApi = {
   list: () => requests.get<Book[]>("/book"),
   details: (id: string) => requests.get<Book>(`/book/${id}`),
-  create: (book: Book) => requests.post<void>("/book", book),
+  create: (book: BookFormValues) => requests.post<Book>("/book", book),
   updateBook: (book: Book) => requests.put<void>(`/book/${book.id}`, book),
   updateBookStatus: (id: string, isBorrowed: boolean) => {
     return requests.put<void>(`/book/${id}/borrow`, { isBorrowed });

@@ -1,4 +1,4 @@
-import { ErrorMessage, Form, Formik } from "formik";
+import { ErrorMessage, Form, Formik, Field } from "formik";
 import { observer } from "mobx-react-lite";
 import { Button, Header } from "semantic-ui-react";
 import MyTextInput from "../../app/common/form/MyTextInput";
@@ -6,8 +6,9 @@ import * as Yup from "yup";
 import { useStore } from "../store";
 import ValidationError from "../errors/ValidationError";
 
-export default observer(function RegsiterForm() {
+export default observer(function RegisterForm() {
   const { userStore } = useStore();
+
   return (
     <Formik
       initialValues={{
@@ -15,7 +16,7 @@ export default observer(function RegsiterForm() {
         username: "",
         email: "",
         password: "",
-        isLibrarian: false,
+        IsLibrarian: false,
         error: null,
       }}
       onSubmit={(values, { setErrors }) =>
@@ -26,28 +27,23 @@ export default observer(function RegsiterForm() {
         username: Yup.string().required(),
         email: Yup.string().required(),
         password: Yup.string().required(),
-        isLibrarian : Yup.string().required()
       })}
     >
       {({ handleSubmit, isSubmitting, errors, isValid, dirty }) => (
-        <Form
-          className="ui form error"
-          onSubmit={handleSubmit}
-          autoComplete="off"
-        >
+        <Form className="ui form error" onSubmit={handleSubmit} autoComplete="off">
           <Header as="h2" content="Sign up" color="teal" textAlign="center" />
           <MyTextInput placeholder="Display Name" name="displayName" />
           <MyTextInput placeholder="Username" name="username" />
           <MyTextInput placeholder="Email" name="email" />
           <MyTextInput placeholder="Password" name="password" type="password" />
+
           <div className="ui checkbox">
-            <input type="checkbox" name="isLibrarian" />
+            <Field type="checkbox" name="IsLibrarian" />
             <label>Register as Librarian</label>
           </div>
-          <ErrorMessage
-            name="error"
-            render={() => <ValidationError errors={errors.error} />}
-          />
+
+          <ErrorMessage name="error" render={() => <ValidationError errors={errors.error} />} />
+
           <Button
             disabled={!isValid || !dirty || isSubmitting}
             loading={isSubmitting}

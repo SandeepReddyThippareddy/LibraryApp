@@ -13,11 +13,11 @@ export default function App() {
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/books" element={<BookDashboard />} />
-                <Route path="/createBook" element={<BookForm />} />
-                <Route path="/manage/:id" element={<BookForm />} />
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/register" element={<RegisterForm />} />
                 <Route path="/profiles/:username" element={<ProfilePage />} />
+                <Route path="/books/create" element={<BookForm />} />
+                <Route path="/books/edit/:id" element={<BookForm />} />
             </Routes>
         </Router>
     );
