@@ -12,6 +12,11 @@ export default observer(function NavBar() {
                     Home
                 </Menu.Item>
                 <Menu.Item as={NavLink} to='/books' name='Books' />
+                {user?.isLibrarian && (
+                    <Menu.Item as={NavLink} to="/books/create" exact>
+                    <Button positive>Create Book</Button>
+                    </Menu.Item>
+                )}
                 <Menu.Item position='right'>
                     <Image avatar spaced='right' src={user?.profileImage || '/assets/user.png'} />
                     <Dropdown pointing='top left' text={user?.username}>
