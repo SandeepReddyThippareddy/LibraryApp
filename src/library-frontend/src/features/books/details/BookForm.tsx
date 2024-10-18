@@ -38,7 +38,7 @@ const BookForm = observer(() => {
             category: book.category || "",
             publicationDate: book.publicationDate || null,
             ISBN: book.ISBN || "",
-            pageCount: book.pageCount || 0, // Default to 0 if undefined
+            pageCount: book.pageCount || 0,
             coverImage: book.coverImage || "",
             publisher: book.publisher || ""
           });

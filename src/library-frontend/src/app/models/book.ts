@@ -40,5 +40,5 @@ export const defaultBookFormValues: BookFormValues = {
   publicationDate: null,
   category: "",
   ISBN: "",
-  pageCount: 0, 
+  pageCount: 0,
 };

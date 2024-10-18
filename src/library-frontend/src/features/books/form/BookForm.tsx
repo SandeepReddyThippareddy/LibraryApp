@@ -16,8 +16,8 @@ export default observer(function BookForm() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     
-    // Initializing state with an empty object that conforms to BookFormValues interface
     const [book, setBook] = useState<BookFormValues>({
+        id: '',
         title: '',
         author: '',
         description: '',
@@ -25,7 +25,8 @@ export default observer(function BookForm() {
         publicationDate: null,
         ISBN: '',
         coverImage: '',
-        publisher: ''
+        publisher: '',
+        pageCount: 0
     });
 
     const validationSchema = Yup.object({
@@ -36,16 +37,22 @@ export default observer(function BookForm() {
     });
 
     useEffect(() => {
-        if (id) loadBook(id).then(book => setBook({
-            title: book?.title,
-            author: book?.author,
-            description: book?.description,
-            category: book?.category,
-            publicationDate: book?.publicationDate,
-            ISBN: book?.ISBN,
-            coverImage: book?.coverImage,
-            publisher: book?.publisher
-        }));
+        if (id) loadBook(id).then(book => {
+            if (book) {
+                setBook({
+                    id: book.id || '',
+                    title: book.title || '',
+                    author: book.author || '',
+                    description: book.description || '',
+                    category: book.category || '',
+                    publicationDate: book.publicationDate || null,
+                    ISBN: book.ISBN || '',
+                    coverImage: book.coverImage || '',
+                    publisher: book.publisher || '',
+                    pageCount: book.pageCount || 0
+                });
+            }
+        });
     }, [id, loadBook]);
 
     function handleFormSubmit(bookFormValues: BookFormValues) {
