@@ -19,7 +19,7 @@ export const routes: RouteObject[] = [
           { path: "books", element: <BookDashboard /> },
           { path: "book/:id", element: <BookDetails /> },
           {path: "/books/create", element: <BookForm key='create' />},
-          {path: '/books/edit/:id', element: <BookForm key='manage' />},
+          {path: '/books/create/:id', element: <BookForm key='manage' />},
           { path: "profiles/:username", element: <ProfilePage /> },
         ],
       },

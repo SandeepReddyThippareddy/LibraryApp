@@ -18,7 +18,7 @@ const BookDetailedHeader = observer(({ Book }: Props) => {
   const navigate = useNavigate();
 
   const handleUpdate = () => {
-    navigate(`/manage/${Book.id}`); 
+    navigate(`/books/create/${Book.id}`); 
   };
 
   const handleDelete = async (id: string) => {
