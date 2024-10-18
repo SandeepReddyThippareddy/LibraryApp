@@ -43,7 +43,7 @@ This is a **Book Management Application** that allows users to manage books in a
 
 **Clone the Repository**:
    ```bash
-[   git clone https://github.com/your-repository/book-management-app.git](https://github.com/SandeepReddyThippareddy/LibraryApp.git)
+(https://github.com/SandeepReddyThippareddy/LibraryApp.git)
   ```
 
 **Book Management Application Setup**
