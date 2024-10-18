@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.SignalR;
 using LibraryApp.Data;
 using Microsoft.EntityFrameworkCore;
 using LibraryApp.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LibraryApp.API.SignalR
 {
+    [Authorize]
     public class ChatHub : Hub
     {
         private readonly LibraryContext _context;
@@ -16,10 +18,10 @@ namespace LibraryApp.API.SignalR
 
         public async Task SendComment(string body, int bookId)
         {
-            var user = Context.User.Identity.Name;  
+            var user = Context.User.Identity.Name;
 
             var book = await _context.Books
-                .Include(b => b.Reviews)  
+                .Include(b => b.Reviews)
                 .FirstOrDefaultAsync(b => b.Id == bookId);
 
             if (book == null) return;
@@ -38,14 +40,21 @@ namespace LibraryApp.API.SignalR
 
             if (success)
             {
-                await Clients.Group(bookId.ToString()).SendAsync("ReceiveComment", comment);
+                var commentDto = new
+                {
+                    comment.Id,
+                    comment.Body,
+                    comment.CreatedAt,
+                    Author = comment.Author.UserName
+                };
+                await Clients.Group(bookId.ToString()).SendAsync("ReceiveComment", commentDto);
             }
         }
 
         public override async Task OnConnectedAsync()
         {
             var httpContext = Context.GetHttpContext();
-            var bookId = httpContext.Request.Query["bookId"];
+            var bookId = httpContext.Request.Query["BookId"];
 
             if (int.TryParse(bookId, out var parsedBookId))
             {

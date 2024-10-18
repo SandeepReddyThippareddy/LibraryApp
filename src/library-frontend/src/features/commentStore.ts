@@ -11,7 +11,6 @@ export default class CommentStore {
         makeAutoObservable(this);
     }
 
-    // Create a hub connection for book discussion using BookId
     createHubConnection = (bookId: string) => {
         if (store.bookStore.selectedBook) {
             this.hubConnection = new HubConnectionBuilder()
@@ -37,8 +36,8 @@ export default class CommentStore {
                 runInAction(() => {
                     comment.createdAt = new Date(comment.createdAt);
                     this.comments.unshift(comment);
-                })
-            })
+                });
+            });
         }
     }
 
@@ -52,9 +51,12 @@ export default class CommentStore {
     }
 
     addComment = async (values: any) => {
-        values.BookId = store.bookStore.selectedBook?.id; 
+        const payload = {
+            body: values.body, 
+            bookId: store.bookStore.selectedBook?.id
+        };
         try {
-            await this.hubConnection?.invoke('SendComment', values);
+            await this.hubConnection?.invoke('SendComment', payload.body, payload.bookId);
         } catch (error) {
             console.log(error);
         }
