@@ -8,20 +8,20 @@ import { formatDistanceToNow } from 'date-fns';
 import { useStore } from '../../store';
 
 interface Props {
-    bookId: string;
+    BookId: string;
 }
 
-export default observer(function BookDetailedChat({ bookId }: Props) {
+export default observer(function BookDetailedChat({ BookId }: Props) {
     const { commentStore } = useStore();
 
     useEffect(() => {
-        if (bookId) {
-            commentStore.createHubConnection(bookId);
+        if (BookId) {
+            commentStore.createHubConnection(BookId);
         }
         return () => {
             commentStore.clearComments();
         }
-    }, [commentStore, bookId]);
+    }, [commentStore, BookId]);
 
     return (
         <>
